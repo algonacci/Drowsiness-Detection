@@ -80,7 +80,7 @@ with mp_face_mesh.FaceMesh(
                                 fontScale=1, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
 
         else:
-            cv2.rectangle(image, (0, 0), (150, 60), (0, 0, 0), -1)
+            cv2.rectangle(image, (0, 0), (250, 80), (0, 0, 0), -1)
             cv2.putText(img=image, text="Face Not Detected", org=(
                 10, 35), fontFace=1, fontScale=1.5, color=(0, 0, 255), thickness=2)
 

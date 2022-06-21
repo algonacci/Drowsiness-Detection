@@ -9,6 +9,15 @@ mp_face_mesh = mp.solutions.face_mesh
 
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 cap = cv2.VideoCapture(0)
+
+i = 0
+second = 1
+EAR = []
+EAR_FIX = 0
+EAR_ALL = []
+fps = cap.get(cv2.CAP_PROP_FPS)
+fps = int(fps)
+
 with mp_face_mesh.FaceMesh(
         max_num_faces=1,
         refine_landmarks=True,
@@ -71,21 +80,40 @@ with mp_face_mesh.FaceMesh(
                 close_eyes = module.check_close_eyes(
                     distance_left, distance_right)
 
-                cv2.rectangle(image, (0, 0), (150, 60), (0, 0, 0), -1)
+                cv2.rectangle(image, (0, 0), (170, 80), (0, 0, 0), -1)
                 if(focus == True and close_eyes == False):
                     cv2.putText(image, text="Steady", org=(15, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX,
                                 fontScale=1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+                    EAR.append(1)
                 else:
                     cv2.putText(image, text="Drowsy", org=(15, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX,
                                 fontScale=1, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
+                    EAR.append(0)
 
         else:
             cv2.rectangle(image, (0, 0), (250, 80), (0, 0, 0), -1)
             cv2.putText(img=image, text="Face Not Detected", org=(
                 10, 35), fontFace=1, fontScale=1.5, color=(0, 0, 255), thickness=2)
 
+        i = i+1
+        if(i == fps):
+            EAR_SUM = sum(EAR)
+            EAR_FIX = EAR_SUM/fps
+            EAR_ALL.append([second, EAR_FIX])
+            EAR = []
+            i = 0
+            second = second+1
+            print(EAR_FIX, fps)
+
+        if (EAR_FIX > 0.3):
+            cv2.putText(img=image, text="EAR: "+str(round(EAR_FIX, 2) * 100) + "%",
+                    org=(10, 70), fontFace=1, fontScale=1.5, color=(255, 255, 0), thickness=2)
+        else:
+            cv2.putText(img=image, text="EAR: "+str(round(EAR_FIX, 2) * 100) + "%",
+                    org=(10, 70), fontFace=1, fontScale=1.5, color=(0, 0, 255), thickness=2)
+
         # Flip the image horizontally for a selfie-view display.
-        cv2.imshow('MediaPipe Face Mesh', image)
+        cv2.imshow('Drowsiness Detection', image)
         if cv2.waitKey(5) & 0xFF == 27:
             break
 

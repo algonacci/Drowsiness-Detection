@@ -60,8 +60,6 @@ with mp_face_mesh.FaceMesh(
                     set(itertools.chain(*mp_face_mesh.FACEMESH_IRISES)))
                 list_z = []
                 for iris in iris_index:
-                    x = round(face_landmarks.landmark[iris].x, 3)
-                    y = round(face_landmarks.landmark[iris].y, 3)
                     z = round(face_landmarks.landmark[iris].z, 3)
                     list_z.append(z)
                 focus = module.check_focus(list_z)
@@ -103,16 +101,15 @@ with mp_face_mesh.FaceMesh(
             EAR = []
             i = 0
             second = second+1
-            print(EAR_FIX, fps)
+            print('Eye Aspect Ratio: {}'.format(EAR_FIX))
 
         if (EAR_FIX > 0.3):
             cv2.putText(img=image, text="EAR: "+str(round(EAR_FIX, 2) * 100) + "%",
-                    org=(10, 70), fontFace=1, fontScale=1.5, color=(255, 255, 0), thickness=2)
+                        org=(10, 70), fontFace=1, fontScale=1.5, color=(255, 255, 0), thickness=2)
         else:
             cv2.putText(img=image, text="EAR: "+str(round(EAR_FIX, 2) * 100) + "%",
-                    org=(10, 70), fontFace=1, fontScale=1.5, color=(0, 0, 255), thickness=2)
+                        org=(10, 70), fontFace=1, fontScale=1.5, color=(0, 0, 255), thickness=2)
 
-        # Flip the image horizontally for a selfie-view display.
         cv2.imshow('Drowsiness Detection', image)
         if cv2.waitKey(5) & 0xFF == 27:
             break

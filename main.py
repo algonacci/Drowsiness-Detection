@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import itertools
 import module
+import serial
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -17,6 +18,9 @@ EAR_FIX = 0
 EAR_ALL = []
 fps = cap.get(cv2.CAP_PROP_FPS)
 fps = int(fps)
+
+serialComm = serial.Serial('COM6', 115200)
+serialComm.timeout = 1
 
 with mp_face_mesh.FaceMesh(
         max_num_faces=1,
@@ -83,10 +87,16 @@ with mp_face_mesh.FaceMesh(
                     cv2.putText(image, text="Steady", org=(15, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX,
                                 fontScale=1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
                     EAR.append(1)
+                    e='\n'
+                    serialComm.write(str("1").encode())
+                    serialComm.write(e.encode()) 
                 else:
                     cv2.putText(image, text="Drowsy", org=(15, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX,
                                 fontScale=1, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
                     EAR.append(0)
+                    e='\n'
+                    serialComm.write(str("0").encode())
+                    serialComm.write(e.encode()) 
 
         else:
             cv2.rectangle(image, (0, 0), (250, 80), (0, 0, 0), -1)

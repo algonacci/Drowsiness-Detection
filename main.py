@@ -2,7 +2,12 @@ import cv2
 import mediapipe as mp
 import itertools
 import module
-import serial
+import torch
+from torch.hub import load
+# import serial
+
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -19,8 +24,8 @@ EAR_ALL = []
 fps = cap.get(cv2.CAP_PROP_FPS)
 fps = int(fps)
 
-serialComm = serial.Serial('COM6', 115200)
-serialComm.timeout = 1
+# serialComm = serial.Serial('COM6', 115200)
+# serialComm.timeout = 1
 
 with mp_face_mesh.FaceMesh(
         max_num_faces=1,
@@ -33,6 +38,9 @@ with mp_face_mesh.FaceMesh(
             print("Ignoring empty camera frame.")
             # If loading a video, use 'break' instead of 'continue'.
             continue
+
+        detection_result = model(image)
+        print(detection_result)
 
         # To improve performance, optionally mark the image as not writeable to
         # pass by reference.
@@ -83,20 +91,37 @@ with mp_face_mesh.FaceMesh(
                     distance_left, distance_right)
 
                 cv2.rectangle(image, (0, 0), (170, 80), (0, 0, 0), -1)
-                if(focus == True and close_eyes == False):
+                if (focus == True and close_eyes == False):
                     cv2.putText(image, text="Steady", org=(15, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX,
                                 fontScale=1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
                     EAR.append(1)
-                    e='\n'
-                    serialComm.write(str("1").encode())
-                    serialComm.write(e.encode()) 
+                    e = '\n'
+                    # serialComm.write(str("1").encode())
+                    # serialComm.write(e.encode())
                 else:
                     cv2.putText(image, text="Drowsy", org=(15, 35), fontFace=cv2.FONT_HERSHEY_DUPLEX,
                                 fontScale=1, color=(0, 0, 255), thickness=2, lineType=cv2.LINE_AA)
                     EAR.append(0)
-                    e='\n'
-                    serialComm.write(str("0").encode())
-                    serialComm.write(e.encode()) 
+                    e = '\n'
+                    # serialComm.write(str("0").enqqq
+
+            if detection_result.pred[0] is not None:
+                for det in detection_result.pred[0]:
+                    x1, y1, x2, y2, conf, cls = det.tolist()
+
+                    if cls == 67:  # Assuming class index 0 corresponds to smoking
+                        # Convert to integers
+                        x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
+                        cv2.rectangle(image, (x1, y1),
+                                      (x2, y2), (255, 0, 0), 2)
+                        cv2.putText(image, text="Phone Detected", org=(x1, y1 - 10), fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                    fontScale=0.5, color=(255, 0, 0), thickness=2)
+                    elif cls == 39:  # Assuming class index 39 corresponds to bottle
+                        x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
+                        cv2.rectangle(image, (x1, y1),
+                                      (x2, y2), (255, 0, 0), 2)
+                        cv2.putText(image, text="Bottle Detected", org=(x1, y1 - 10), fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                    fontScale=0.5, color=(255, 0, 0), thickness=1)
 
         else:
             cv2.rectangle(image, (0, 0), (250, 80), (0, 0, 0), -1)
@@ -104,7 +129,7 @@ with mp_face_mesh.FaceMesh(
                 10, 35), fontFace=1, fontScale=1.5, color=(0, 0, 255), thickness=2)
 
         i = i+1
-        if(i == fps):
+        if (i == fps):
             EAR_SUM = sum(EAR)
             EAR_FIX = EAR_SUM/fps
             EAR_ALL.append([second, EAR_FIX])
@@ -125,3 +150,4 @@ with mp_face_mesh.FaceMesh(
             break
 
 cap.release()
+cv2.destroyAllWindows()

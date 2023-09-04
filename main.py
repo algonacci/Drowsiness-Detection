@@ -33,11 +33,17 @@ with mp_face_mesh.FaceMesh(
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5) as face_mesh:
     while cap.isOpened():
+
         success, image = cap.read()
         if not success:
             print("Ignoring empty camera frame.")
             # If loading a video, use 'break' instead of 'continue'.
             continue
+
+        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        fps_text = f"FPS: {fps}"
+        cv2.putText(image, text=fps_text, org=(image.shape[1] - 100, 30),
+                    fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=0.5, color=(255, 255, 255), thickness=1)
 
         detection_result = model(image)
         print(detection_result)
